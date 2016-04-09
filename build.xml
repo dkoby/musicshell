@@ -1,0 +1,60 @@
+<project name="MusicShell" basedir="." default="jar">
+    <property name="build.sysclasspath" value="last"/>
+    <!--
+    <presetdef name="javac">
+        <javac includeantruntime="false" />
+    </presetdef>
+    -->
+
+    <property environment="env" />
+
+    <!-- -->
+    <property name="src.dir"     value="src"/>
+    <condition property="build.dir" value="${env.BUILD_DIR}/mshell/build" else="build">
+        <isset property="env.BUILD_DIR"/>
+    </condition>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="jar.dir"     value="${build.dir}/jar"/>
+    <!-- -->
+    <property name="main-class"  value="mshell.MusicShell"/>
+    <!-- -->
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" debug="true" debuglevel="lines,vars,source">
+                <compilerarg value="-Xlint:unchecked"/>
+                <compilerarg value="-Xlint:deprecation"/>
+        </javac>
+    </target>
+    <!-- -->
+    <target name="jar" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
+            <fileset dir="${src.dir}" includes="res/img/**/*.png"/>
+            <fileset dir="${src.dir}" includes="res/img/**/*.jpg"/>
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}"/>
+            </manifest>
+        </jar>
+    </target>
+    <!-- -->
+    <target name="doc">
+        <mkdir dir="${build.dir}/doc"/>
+        <javadoc destdir="${build.dir}/doc" classpath="${src.dir}"
+            Encoding="UTF-8" Locale="en_US">
+            <fileset dir="${src.dir}">
+                <include name="**/*.java"/>
+            </fileset>
+        </javadoc>
+    </target>
+    <!-- -->
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+    <!-- -->
+    <target name="clean-build" depends="clean, jar"/>
+    <!-- -->
+    <target name="run" depends="jar">
+        <java jar="${jar.dir}/${ant.project.name}.jar" fork="true"/>
+    </target>
+</project>
+
