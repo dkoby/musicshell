@@ -118,21 +118,27 @@ public class ControlThread implements Runnable {
                 if (prevStatus == null) {
                     loadCover = true;
                 } else {
-                    /* Nothing to do if we know nothing about file (only possible on MPD stop state) */
-                    if (prevStatus.currentSong.file != null && status.currentSong.file != null) {
-                        /* If file changed we should update cover */
-                        if (!prevStatus.currentSong.file.equals(status.currentSong.file)) {
-                            loadCover = true;
-                        } else {
-                            /* If we now know about artist and album we can load cover from remote source. */
-                            if ((prevStatus.currentSong.artist == null && prevStatus.currentSong.album == null) &&
-                                (status.currentSong.artist != null && prevStatus.currentSong.album != null)) {
+                    if (prevStatus.currentSong.file == null && status.currentSong.file != null) {
+                        loadCover = true;
+                    } else if (prevStatus.currentSong.file != null && status.currentSong.file == null) {
+                        loadCover = true;
+                    } else {
+                        /* Nothing to do if we know nothing about file (only possible on MPD stop state) */
+                        if (prevStatus.currentSong.file != null && status.currentSong.file != null) {
+                            /* If file changed we should update cover */
+                            if (!prevStatus.currentSong.file.equals(status.currentSong.file)) {
                                 loadCover = true;
+                            } else {
+                                /* If we now know about artist and album we can load cover from remote source. */
+                                if ((prevStatus.currentSong.artist == null && prevStatus.currentSong.album == null) &&
+                                    (status.currentSong.artist != null && prevStatus.currentSong.album != null)) {
+                                    loadCover = true;
+                                }
                             }
                         }
                     }
                 }
-                if (loadCover && status.currentSong.file != null) {
+                if (loadCover) {
                     ms.coverManager.putRequest(ms.coverManager.new CoverRequest(
                                 status.currentSong.file,
                                 status.currentSong.artist,
@@ -201,6 +207,22 @@ public class ControlThread implements Runnable {
                 break;
             case LOADNOCOVER:
                 ms.view.loadNoCover();
+                break;
+            case PLAYLISTCLEAR:
+                mpdClient.clearPlaylist();
+                ms.view.loadPlaylist(mpdClient.getPlaylist());
+                break;
+            case TOGGLEREPEAT:
+                mpdClient.repeatToggle();
+                ms.view.drawStatus(mpdClient.getStatus());
+                break;
+            case TOGGLESINGLE:
+                mpdClient.singleToggle();
+                ms.view.drawStatus(mpdClient.getStatus());
+                break;
+            case TOGGLERANDOM:
+                mpdClient.randomToggle();
+                ms.view.drawStatus(mpdClient.getStatus());
                 break;
         }
     }

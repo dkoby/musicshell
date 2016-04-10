@@ -19,6 +19,10 @@ public class ControlMessage {
         PLAYTRACK,
         LOADCOVER,
         LOADNOCOVER,
+        PLAYLISTCLEAR,
+        TOGGLEREPEAT,
+        TOGGLESINGLE,
+        TOGGLERANDOM,
     }
     public Id id;
     public Object object;

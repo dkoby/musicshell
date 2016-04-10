@@ -101,75 +101,77 @@ public class CoverManager implements Runnable {
                 coverRequest.artist != null ? coverRequest.artist : "NULL",
                 coverRequest.album != null ? coverRequest.album : "NULL");
 
-        for (String source: ms.config.coverPriority) {
-            DPrint.format(DPrint.Level.VERBOSE4, "Check source: \"%s\"%n", source);
-            if (source.equals("CACHE")) {
-                Path path = getCacheCoverPath(coverRequest.artist, coverRequest.album);
-                if (path.toFile().exists())
-                    coverPath = path.toString();
+        if (coverRequest.filePath != null) {
+            for (String source: ms.config.coverPriority) {
+                DPrint.format(DPrint.Level.VERBOSE4, "Check source: \"%s\"%n", source);
+                if (source.equals("CACHE")) {
+                    Path path = getCacheCoverPath(coverRequest.artist, coverRequest.album);
+                    if (path.toFile().exists())
+                        coverPath = path.toString();
 
 
-            } else if (source.equals("LASTFM")) {
-                /* we can query for last.fm only if we know artist and album */
-                if (coverRequest.artist == null || coverRequest.album == null)
-                    continue;
+                } else if (source.equals("LASTFM")) {
+                    /* we can query for last.fm only if we know artist and album */
+                    if (coverRequest.artist == null || coverRequest.album == null)
+                        continue;
 
-                /* Insert some delay if we access last.fm service recently */
-                if (prevLastFMAccessTime != null) {
-                    Instant now = Instant.now();
-                    long dt = Duration.between(prevLastFMAccessTime, now).toMillis();
-                    if (dt < ms.config.lastFMDelay) {
-                        DPrint.format(DPrint.Level.VERBOSE4, "Wait for access last.fm for \"%d\" ms%n", dt);
-                        try {
-                            Thread.sleep(dt);
-                        } catch (InterruptedException e) {
-                            System.out.println(getClass().getSimpleName() + "interrupted, " + e);
-                            break;
+                    /* Insert some delay if we access last.fm service recently */
+                    if (prevLastFMAccessTime != null) {
+                        Instant now = Instant.now();
+                        long dt = Duration.between(prevLastFMAccessTime, now).toMillis();
+                        if (dt < ms.config.lastFMDelay) {
+                            DPrint.format(DPrint.Level.VERBOSE4, "Wait for access last.fm for \"%d\" ms%n", dt);
+                            try {
+                                Thread.sleep(dt);
+                            } catch (InterruptedException e) {
+                                System.out.println(getClass().getSimpleName() + "interrupted, " + e);
+                                break;
+                            }
                         }
                     }
-                }
-                prevLastFMAccessTime = Instant.now();
+                    prevLastFMAccessTime = Instant.now();
 
-                LastFM lastFM = null;
-                try {
-                    lastFM = new LastFM();
-                } catch (Exception e) {
-                    DPrint.format(DPrint.Level.EXCEPTION, "Failed to connect to last.fm service, %s%n", e);
-                    continue;
-                }
+                    LastFM lastFM = null;
+                    try {
+                        lastFM = new LastFM();
+                    } catch (Exception e) {
+                        DPrint.format(DPrint.Level.EXCEPTION, "Failed to connect to last.fm service, %s%n", e);
+                        continue;
+                    }
 
-                String url;
-                try {
-                    url = lastFM.query(coverRequest.artist, coverRequest.album);
-                } catch (Exception e) {
-                    DPrint.format(DPrint.Level.EXCEPTION, "Failed to get cover from last.fm service, %s%n", e);
-                    continue;
-                }
-                lastFM.close();
+                    String url;
+                    try {
+                        url = lastFM.query(coverRequest.artist, coverRequest.album);
+                    } catch (Exception e) {
+                        DPrint.format(DPrint.Level.EXCEPTION, "Failed to get cover from last.fm service, %s%n", e);
+                        continue;
+                    }
+                    lastFM.close();
 
-                if (url == null)
-                    continue;
+                    if (url == null)
+                        continue;
 
-                DPrint.format(DPrint.Level.VERBOSE4, "LASTFM URL: \"%s\"%n", url);
-                try {
-                    coverPath = saveURLToCache(coverRequest.artist, coverRequest.album, url);
-                } catch (Exception e) {
-                    DPrint.format(DPrint.Level.EXCEPTION, "Failed to download cover to cache, %s%n", e);
-                    continue;
+                    DPrint.format(DPrint.Level.VERBOSE4, "LASTFM URL: \"%s\"%n", url);
+                    try {
+                        coverPath = saveURLToCache(coverRequest.artist, coverRequest.album, url);
+                    } catch (Exception e) {
+                        DPrint.format(DPrint.Level.EXCEPTION, "Failed to download cover to cache, %s%n", e);
+                        continue;
+                    }
+                } else {
+                    /* Check if file look's like URI with scheme, if not then it is local file */
+                    Matcher matcher = Pattern.compile("^[\\w\\+\\.\\-]+://.*").matcher(coverRequest.filePath);
+                    if (matcher.find()) {
+                        DPrint.format(DPrint.Level.VERBOSE4, "Remote file, can not use glob pattern, try next source%n");
+                        continue;
+                    }
+                    coverPath = lookLocal(coverRequest, source);
                 }
-            } else {
-                /* Check if file look's like URI with scheme, if not then it is local file */
-                Matcher matcher = Pattern.compile("^[\\w\\+\\.\\-]+://.*").matcher(coverRequest.filePath);
-                if (matcher.find()) {
-                    DPrint.format(DPrint.Level.VERBOSE4, "Remote file, can not use glob pattern, try next source%n");
-                    continue;
-                }
-                coverPath = lookLocal(coverRequest, source);
+                if (coverPath != null)
+                    break;
+                /* */
+                DPrint.format(DPrint.Level.VERBOSE4, "Not found%n");
             }
-            if (coverPath != null)
-                break;
-            /* */
-            DPrint.format(DPrint.Level.VERBOSE4, "Not found%n");
         }
 
         if (coverPath != null) {
@@ -243,7 +245,18 @@ public class CoverManager implements Runnable {
             cachePath = path.toString();
 
             if (!path.toFile().exists())
+            {
+                /* XXX correct jpeg bug */
+                if (ms.config.coverCacheFormat.equals("jpg")) {
+                    int[] pixels = new int[img.getWidth() * img.getHeight()];
+                    img.getRGB(0, 0, img.getWidth(), img.getHeight(), pixels, 0, img.getWidth());
+
+                    img = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
+                    img.setRGB(0, 0, img.getWidth(), img.getHeight(), pixels, 0, img.getWidth());
+                }
+
                 ImageIO.write(img, ms.config.coverCacheFormat, path.toFile());
+            }
         } catch (Exception e) {
             DPrint.format(DPrint.Level.EXCEPTION, "Failed to save image \"%s\", %s%n", urlPath, e);
             throw e;

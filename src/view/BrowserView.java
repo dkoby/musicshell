@@ -82,6 +82,7 @@ public class BrowserView {
             if (currentDir.entries.length > 0)
                 table.setRowSelectionInterval(0, 0);
         }
+        scrollToSelected();
     }
     /**
      *
@@ -128,6 +129,19 @@ public class BrowserView {
             if (cursor >= 0) {
                 currentDir.cursor = cursor;
             }
+        }
+    }
+    /**
+     *
+     */
+    public void scrollToSelected() {
+        if (currentDir.entries.length > currentDir.cursor) {
+            int x       = 0;
+            int width   = table.getWidth();
+            int y       = currentDir.cursor * table.getRowHeight();
+            int height  = table.getRowHeight();
+
+            table.scrollRectToVisible(new Rectangle(x, y, width, height));
         }
     }
     /**
@@ -188,10 +202,20 @@ public class BrowserView {
             JLabel label = (JLabel)super.getTableCellRendererComponent(
                     table, value, isSelected, hasFocus, row, column);
 
+            setBorder(noFocusBorder);
+
             if (currentDir.entries[row].type.equals(MPDDBFilesResponse.EntryType.FILE)) {
-                label.setForeground(curFgColor);
+                if (table.isRowSelected(row)) {
+                    label.setForeground(table.getSelectionForeground());
+                } else {
+                    label.setForeground(curFgColor);
+                }
             } else {
-                label.setForeground(table.getForeground());
+                if (table.isRowSelected(row)) {
+                    label.setForeground(table.getSelectionForeground());
+                } else {
+                    label.setForeground(table.getForeground());
+                }
             }
 
             return label;

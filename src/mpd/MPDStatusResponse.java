@@ -11,9 +11,12 @@ import mshell.util.DPrint;
 public class MPDStatusResponse {
     public Integer volume;
     public Boolean repeat;
+    public Boolean single;
+    public Boolean random;
     public Integer id;
     public Integer pos;
     public State   state;
+    public Integer time[] = new Integer[2];
     public CurrentSong currentSong;
     /**
      * State encoding
@@ -34,7 +37,7 @@ public class MPDStatusResponse {
         public String title;
         public String album;
         public String date;
-        public String time;
+        public Integer time;
         public Integer track[] = new Integer[2];
     }
 }

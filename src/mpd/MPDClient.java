@@ -220,6 +220,30 @@ public class MPDClient {
                     continue;
                 }
             }
+            if (status.random == null) {
+                pattern = Pattern.compile("^random:\\s+([01]+)");
+                matcher = pattern.matcher(line);
+                if (matcher.find() && matcher.start(1) >= 0)
+                {
+                    if (Integer.decode(matcher.group(1)) == 0)
+                        status.random = false;
+                    else
+                        status.random = true;
+                    continue;
+                }
+            }
+            if (status.single == null) {
+                pattern = Pattern.compile("^single:\\s+([01]+)");
+                matcher = pattern.matcher(line);
+                if (matcher.find() && matcher.start(1) >= 0)
+                {
+                    if (Integer.decode(matcher.group(1)) == 0)
+                        status.single = false;
+                    else
+                        status.single = true;
+                    continue;
+                }
+            }
             if (status.pos == null) {
                 pattern = Pattern.compile("^song:\\s+(\\d+)");
                 matcher = pattern.matcher(line);
@@ -235,6 +259,18 @@ public class MPDClient {
                 if (matcher.find() && matcher.start(1) >= 0)
                 {
                     status.id = Integer.decode(matcher.group(1));
+                    continue;
+                }
+            }
+            if (status.time[0] == null) {
+                matcher = Pattern.compile("^time:\\s+(\\d+):(\\d+)").matcher(line);
+                if (matcher.find()) {
+                    if (matcher.start(1) >= 0) {
+                        status.time[0] = Integer.decode(matcher.group(1));
+                    }
+                    if (matcher.start(2) >= 0) {
+                        status.time[1] = Integer.decode(matcher.group(2));
+                    }
                     continue;
                 }
             }
@@ -321,7 +357,7 @@ public class MPDClient {
             if (currentSong.time == null) {
                 matcher = Pattern.compile("^Time:\\s+(.+)").matcher(line);
                 if (matcher.find() && matcher.start(1) >= 0) {
-                    currentSong.time = matcher.group(1);
+                    currentSong.time = Integer.decode(matcher.group(1));
                     continue;
                 }
             }
@@ -533,6 +569,12 @@ public class MPDClient {
     /**
      *
      */
+    public void clearPlaylist() throws MPDException {
+        query("clear");
+    }
+    /**
+     *
+     */
     public void playPause() throws MPDException {
         MPDStatusResponse status = getStatus();
 
@@ -540,6 +582,39 @@ public class MPDClient {
             query("pause", "1");
         else if (status.state.equals(MPDStatusResponse.State.PAUSE))
             query("pause", "0");
+    }
+    /**
+     *
+     */
+    public void repeatToggle() throws MPDException {
+        MPDStatusResponse status = getStatus();
+
+        if (status.repeat)
+            query("repeat", "0");
+        else
+            query("repeat", "1");
+    }
+    /**
+     *
+     */
+    public void randomToggle() throws MPDException {
+        MPDStatusResponse status = getStatus();
+
+        if (status.random)
+            query("random", "0");
+        else
+            query("random", "1");
+    }
+    /**
+     *
+     */
+    public void singleToggle() throws MPDException {
+        MPDStatusResponse status = getStatus();
+
+        if (status.single)
+            query("single", "0");
+        else
+            query("single", "1");
     }
     /**
      *

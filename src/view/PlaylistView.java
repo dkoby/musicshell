@@ -13,7 +13,7 @@ import mshell.Config.PlaylistColumnsConfig;
 import mshell.mpd.*;
 
 /**
- * Play list table
+ * Playlist table
  */
 public class PlaylistView {
     private MusicShell ms;
@@ -40,6 +40,7 @@ public class PlaylistView {
         table.setTableHeader(null);
         table.setDefaultRenderer(Object.class, new PlaylistTableCellRenderer());
         table.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        table.setColumnSelectionAllowed(false);
 //        table.setCellSelectionEnabled(false);
 
         columnModel = table.getColumnModel();
@@ -69,7 +70,8 @@ public class PlaylistView {
      *
      */
     private void setCursor(int pos) {
-        table.setRowSelectionInterval(pos, pos);
+        if (pos >= 0 && pos < playlist.length)
+            table.setRowSelectionInterval(pos, pos);
     } 
     /**
      *
@@ -280,8 +282,10 @@ public class PlaylistView {
             JLabel label = (JLabel)super.getTableCellRendererComponent(
                     table, value, isSelected, hasFocus, row, column);
 
+            setBorder(noFocusBorder);
+
             MPDPlaylistResponse.TrackInfo track = playlist[row];
-            if (currentStatus == null) {
+            if (currentStatus == null || currentStatus.pos == null) {
                 label.setForeground(table.getForeground());
             } else {
                 if (currentStatus.pos.equals(track.pos)) {

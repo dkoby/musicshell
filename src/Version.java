@@ -7,8 +7,10 @@ package mshell;
  * TODO
  *    * Copy back cover to local directory from CACHE.
  *    * Directly load cover from link provided from LASTFM without save to cache.
- *    * Use JPEG instead of PNG to save to CACHE, need to evade ImageIO writing JPEG files bug.
- *    * use HOME environment variable to make direcotries for CACHE, config, etc.
+ *    * Use HOME environment variable to make direcotries for CACHE, config, etc.
+ *    * Covers in browser.
+ *    * Remove focus border in tables.
+ *    * Update only necessary rows at status redraw (for less CPU usage).
  */
 
 /*

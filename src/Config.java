@@ -17,10 +17,11 @@ public class Config {
     /* */
     public static Color baseColor = new Color(0x44, 0x44, 0x66);
     public static Font listFont = new Font(Font.MONOSPACED, Font.BOLD, 14);
+    public static Font statusFont = new Font(Font.MONOSPACED, Font.BOLD, 16);
     public static Font mpdConnectStatusFont = new Font(Font.MONOSPACED, Font.PLAIN, 10);
     /* */
     public static final double sidePanelWidth = 0.2; /* 0.0 to 1.0, XXX weight, not actual proprtion */
-    public static final int defaultPadding = 4;
+    public static final int defaultPadding = 8;
     /* Playlist columns config */
     public static PlaylistColumnsConfig[] playlistColumnConfig;
     /* MPD settings */
@@ -30,6 +31,7 @@ public class Config {
     public static final String musicDirectory = new String("/home/music");
     public static final String coverCacheDirectory = new String("/home/pine/.mshell/cover");
     public static final String coverCacheFormat = new String("png");
+//    public static final String coverCacheFormat = new String("jpg");
     /*
      * Cover source search priority. Represent glob-style patterns, except
      * of CACHE ant LASTFM. 

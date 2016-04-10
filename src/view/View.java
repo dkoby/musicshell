@@ -49,6 +49,7 @@ public class View extends JFrame {
     private String prevCoverPath;
     private PlaylistView playlistView;
     private BrowserView browserView;
+    private StatusView statusView;
     private boolean noCover = false;
     /**
      * @param ms instance of MusicShell (contain shared resources)
@@ -106,8 +107,12 @@ public class View extends JFrame {
 
                 coverLabel = new JLabel();
 
+                statusView = new StatusView(ms);
+//                statusView.getComponent().revalidate();
+
                 sidePanel.add(coverLabel);
                 sidePanel.add(pad);
+                sidePanel.add(statusView.getComponent());
                 sidePanel.add(Box.createVerticalGlue());
                 sidePanel.add(spectrumView);
                 sidePanel.add(mpdConnectStatus);
@@ -251,6 +256,7 @@ public class View extends JFrame {
     public void drawStatus(MPDStatusResponse status) {
         runLater(() -> {
             playlistView.setCurrent(status);
+            statusView.updateStatus(status);
         });
     }
     /**
@@ -425,6 +431,7 @@ public class View extends JFrame {
             playlistView.setColors(bgColor, fgColor, listSelBgColor,
                     listSelFgColor, listCurFgColor, listCurSelFgColor);
             browserView.setColors(bgColor, fgColor, listSelBgColor, listSelFgColor, listCurFgColor);
+            statusView.setColors(bgColor, fgColor);
             if (mpdError)
                 mpdConnectStatus.setBackground(Color.RED);
             else
@@ -561,6 +568,15 @@ public class View extends JFrame {
                             new SimulateKey((JComponent)e.getSource(), 0, KeyEvent.VK_UP);
                         }
                         return true;
+                    case KeyEvent.VK_R:
+                        if ((e.getModifiers() & KeyEvent.SHIFT_MASK) != 0) {
+                            ms.putControlMessage(new ControlMessage(ControlMessage.Id.TOGGLERANDOM));
+                        } else if ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0) {
+                            ms.putControlMessage(new ControlMessage(ControlMessage.Id.TOGGLESINGLE));
+                        } else {
+                            ms.putControlMessage(new ControlMessage(ControlMessage.Id.TOGGLEREPEAT));
+                        }
+                        return true;
                     case KeyEvent.VK_O:
                         if (isPlaylistMode()) {
                             playlistView.scrollToCurrent();
@@ -577,6 +593,11 @@ public class View extends JFrame {
                         return true;
                     case KeyEvent.VK_S:
                         ms.putControlMessage(new ControlMessage(ControlMessage.Id.STOP));
+                        return true;
+                    case KeyEvent.VK_C:
+                        if (isPlaylistMode()) {
+                            ms.putControlMessage(new ControlMessage(ControlMessage.Id.PLAYLISTCLEAR));
+                        }
                         return true;
                     default:
                         return false;
