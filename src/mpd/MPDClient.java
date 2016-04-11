@@ -184,7 +184,7 @@ public class MPDClient {
 
         ArrayList<String> response = query("status");
         for (String line: response) {
-            DPrint.format(DPrint.Level.VERBOSE4, "line: %s%n", line);
+            DPrint.format(DPrint.Level.VERBOSE1, "line: %s%n", line);
             /*
              * volume: 59
              * repeat: 0

@@ -32,8 +32,13 @@ public class MusicShell {
     private void start(String... args) {
         config = new Config();
 
+        /* parse args */
         for (String arg: args) {
-
+            if (arg.equals("-f"))
+            {
+                config.fullScreen = true;
+                continue;
+            }
         }
 
         try {

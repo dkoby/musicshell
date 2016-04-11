@@ -102,58 +102,61 @@ public class ControlThread implements Runnable {
         }
     }
     /**
+     *
+     */
+    private void processStatus(MPDStatusResponse status) throws MPDClient.MPDException {
+        boolean loadCover = false;
+        /* Status changed - try to load cover anyway */
+        if (prevStatus == null) {
+            loadCover = true;
+        } else {
+            if (prevStatus.currentSong.file == null && status.currentSong.file != null) {
+                loadCover = true;
+            } else if (prevStatus.currentSong.file != null && status.currentSong.file == null) {
+                loadCover = true;
+            } else {
+                /* Nothing to do if we know nothing about file (only possible on MPD stop state) */
+                if (prevStatus.currentSong.file != null && status.currentSong.file != null) {
+                    /* If file changed we should update cover */
+                    if (!prevStatus.currentSong.file.equals(status.currentSong.file)) {
+                        loadCover = true;
+                    } else {
+                        /* If we now know about artist and album we can load cover from remote source. */
+                        if ((prevStatus.currentSong.artist == null && prevStatus.currentSong.album == null) &&
+                            (status.currentSong.artist != null && prevStatus.currentSong.album != null)) {
+                            loadCover = true;
+                        }
+                    }
+                }
+            }
+        }
+        if (loadCover) {
+            ms.coverManager.putRequest(ms.coverManager.new CoverRequest(
+                        status.currentSong.file,
+                        status.currentSong.artist,
+                        status.currentSong.album)
+                    );
+        }
+
+        /* reload browser/playlist on db update finish */
+        if (prevStatus != null && prevStatus.updating_db != null && status.updating_db == null) {
+            if (mode == Mode.BROWSER)
+                ms.view.loadBrowser(currentPath, mpdClient.getDBFiles(currentPath.toString()));
+            else
+                ms.view.loadPlaylist(mpdClient.getPlaylist());
+        }
+        ms.view.drawStatus(status);
+
+        prevStatus = status;
+    }
+    /**
      * Process incoming message of control thread
      */
     private void processMessage(ControlMessage message) throws MPDClient.MPDException {
         DPrint.format(DPrint.Level.VERBOSE4, "process message: %s%n", message.id.name());
         switch (message.id) {
             case GETSTATUS:
-                MPDStatusResponse status;
-                status = mpdClient.getStatus();
-
-                boolean loadCover = false;
-                /* Status changed - try to load cover anyway */
-                if (prevStatus == null) {
-                    loadCover = true;
-                } else {
-                    if (prevStatus.currentSong.file == null && status.currentSong.file != null) {
-                        loadCover = true;
-                    } else if (prevStatus.currentSong.file != null && status.currentSong.file == null) {
-                        loadCover = true;
-                    } else {
-                        /* Nothing to do if we know nothing about file (only possible on MPD stop state) */
-                        if (prevStatus.currentSong.file != null && status.currentSong.file != null) {
-                            /* If file changed we should update cover */
-                            if (!prevStatus.currentSong.file.equals(status.currentSong.file)) {
-                                loadCover = true;
-                            } else {
-                                /* If we now know about artist and album we can load cover from remote source. */
-                                if ((prevStatus.currentSong.artist == null && prevStatus.currentSong.album == null) &&
-                                    (status.currentSong.artist != null && prevStatus.currentSong.album != null)) {
-                                    loadCover = true;
-                                }
-                            }
-                        }
-                    }
-                }
-                if (loadCover) {
-                    ms.coverManager.putRequest(ms.coverManager.new CoverRequest(
-                                status.currentSong.file,
-                                status.currentSong.artist,
-                                status.currentSong.album)
-                            );
-                }
-
-                /* reload browser/playlist on db update finish */
-                if (prevStatus != null && prevStatus.updating_db != null && status.updating_db == null) {
-                    if (mode == Mode.BROWSER)
-                        ms.view.loadBrowser(currentPath, mpdClient.getDBFiles(currentPath.toString()));
-                    else
-                        ms.view.loadPlaylist(mpdClient.getPlaylist());
-                }
-                ms.view.drawStatus(status);
-
-                prevStatus = status;
+                processStatus(mpdClient.getStatus());
                 break;
             case TOGGLEMODE:
             case SWITCHTOBROWSER:
@@ -208,8 +211,7 @@ public class ControlThread implements Runnable {
                 break;
             case PLAYTRACK:
                 mpdClient.playTrack((Integer)message.object);
-                prevStatus = mpdClient.getStatus();
-                ms.view.drawStatus(prevStatus);
+                processStatus(mpdClient.getStatus());
                 break;
             case LOADCOVER:
                 ms.view.loadCover((String)message.object);
@@ -223,26 +225,23 @@ public class ControlThread implements Runnable {
                 break;
             case TOGGLEREPEAT:
                 mpdClient.repeatToggle();
-                prevStatus = mpdClient.getStatus();
-                ms.view.drawStatus(prevStatus);
+                processStatus(mpdClient.getStatus());
                 break;
             case TOGGLESINGLE:
                 mpdClient.singleToggle();
-                prevStatus = mpdClient.getStatus();
-                ms.view.drawStatus(prevStatus);
+                processStatus(mpdClient.getStatus());
                 break;
             case TOGGLERANDOM:
                 mpdClient.randomToggle();
-                prevStatus = mpdClient.getStatus();
-                ms.view.drawStatus(prevStatus);
+                processStatus(mpdClient.getStatus());
                 break;
             case SETVOLUME:
                 mpdClient.setVolume((Integer)message.object);
+                processStatus(mpdClient.getStatus());
                 break;
             case UPDATEDB:
                 mpdClient.updateDB(currentPath.toString());
-                prevStatus = mpdClient.getStatus();
-                ms.view.drawStatus(prevStatus);
+                processStatus(mpdClient.getStatus());
                 break;
         }
     }
