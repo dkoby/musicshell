@@ -34,14 +34,14 @@ public class StatusView {
         /* Initialize status */
         {
             String[] rows = new String[] {
-                "state", /* PLAY, STOP, PAUSE */ 
-                "mode",  /* repeat, random, single */ 
-                "date",
                 "album",
+                "date",
                 "artist",
                 "track",
                 "title",
                 "time",
+                "state", /* PLAY, STOP, PAUSE */ 
+                "mode",  /* repeat, random, single */ 
             };
 
             statusByKey = new HashMap<>(rows.length);
@@ -92,12 +92,16 @@ public class StatusView {
             /* state */
             {
                 StringBuilder data = new StringBuilder(INITIAL_CAPACITY);
+
                 if (mpdStatus.state.equals(MPDStatusResponse.State.PLAY))
                     data.append("[PLAING]");
                 else if (mpdStatus.state.equals(MPDStatusResponse.State.PAUSE))
                     data.append("[PAUSED]");
                 else if (mpdStatus.state.equals(MPDStatusResponse.State.STOP))
                     data.append("[STOPPED]");
+
+                if (mpdStatus.updating_db != null)
+                    data.append("[UPDATING DB]");
 
                 statusData = statusByKey.get("state");
                 statusData.set(data.toString());
@@ -206,8 +210,8 @@ public class StatusView {
         {
             long time = value;
             if (time == 0)
-                return new String("");
-            if (time / 3600 > 0)
+                return new String("--:--");
+            else if (time / 3600 > 0)
                 return new String(String.format("%02d:%02d:%02d", time / 3600, (time % 3600) / 60, time % 60)); 
             else
                 return new String(String.format("%02d:%02d", time / 60, time % 60)); 
@@ -232,6 +236,7 @@ public class StatusView {
         @Override
         public int getRowCount() {
             return statusByRow.length;
+//            return statusByRow.length + 1;
         }
         @Override
         public Class getColumnClass(int column) {
@@ -239,11 +244,12 @@ public class StatusView {
         }
         @Override
         public Object getValueAt(int row, int column) {
-            StatusData statusData = statusByRow[row];
-
-//            System.out.format("update: row %d, column %d%n", row, column);
-
-            return statusData.value.toString();
+            if (row < statusByRow.length) {
+                StatusData statusData = statusByRow[row];
+                return statusData.value.toString();
+            } else {
+                return "";
+            }
         }
         @Override
         public boolean isCellEditable(int row, int column) {
@@ -257,23 +263,31 @@ public class StatusView {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                boolean isSelected, boolean hasFocus, int row, int column) {
-            JLabel label = (JLabel)super.getTableCellRendererComponent(
-                    table, value, isSelected, hasFocus, row, column);
 
-            setBorder(noFocusBorder);
-            label.setHorizontalAlignment(SwingConstants.CENTER);
-//            label.setBorder(BorderFactory.createEmptyBorder(16, 0, 16, 0));
+//            if (row < statusByRow.length) {
+                JLabel label;
+                label = (JLabel)super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
 
-            /* XXX new Color */
-            if ((row % 2) == 0)
-                label.setForeground(table.getForeground());
-            else
-                label.setForeground(interlaceColor);
+                setBorder(noFocusBorder);
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+    //            label.setBorder(BorderFactory.createEmptyBorder(16, 0, 16, 0));
 
+                /* XXX new Color */
+                if ((row % 2) == 0)
+                    label.setForeground(table.getForeground());
+                else
+                    label.setForeground(interlaceColor);
+                return label;
+//            } else {
+//                JLabel label;
+//                label = (ProgressBarView)super.getTableCellRendererComponent(
+//                        table, value, isSelected, hasFocus, row, column);
+//                return label;
+//            }
 
 //            cellSpacingLabel .setBorder(new CompoundBorder(new EmptyBorder(new Insets(1, 4, 1, 4)), oLabel.getBorder()));
 
-            return label;
         }
     }
     /**
@@ -298,100 +312,3 @@ public class StatusView {
     }
 }
 
-//            if (playlist == null)
-//                return new String("");
-//
-//            MPDPlaylistResponse.TrackInfo track = playlist[row];
-//            PlaylistColumnsConfig config = ms.config.playlistColumnConfig[column];
-//
-//            if (config.name.equals("artist")) {
-//                if (track.artist != null)
-//                    return new String(track.artist);
-//            } else if (config.name.equals("date")) {
-//                if (track.date != null)
-//                    return new String(track.date);
-//            } else if (config.name.equals("album")) {
-//                if (track.album != null)
-//                    return new String(track.album);
-//            } else if (config.name.equals("track")) {
-//                if (track.track[0] != null)
-//                    return String.format("%02d", track.track[0]);
-//            } else if (config.name.equals("title")) {
-//                if (track.title != null)
-//                    return new String(track.title); 
-//                else
-//                    return new String(track.file); 
-//            } else if (config.name.equals("time")) {
-//                if (track.time != null)
-//                {
-//                    long time = track.time;
-//                    if (time == 0)
-//                        return new String("");
-//                    if (time / 3600 > 0)
-//                        return new String(String.format("%02d:%02d:%02d", time / 3600, (time % 3600) / 60, time % 60)); 
-//                    else
-//                        return new String(String.format("%02d:%02d", time / 60, time % 60)); 
-//                } else {
-//                    return new String("--:--");
-//                }
-//            }
-
-//    /**
-//     * Set current song
-//     */
-//    public void setCurrent(MPDStatusResponse status) {
-//        if (playlist == null || playlist.length == 0)
-//            return;
-//        /*
-//         * Update current track if necessary
-//         */
-//        if (currentStatus == null || status.pos != currentStatus.pos) {
-//            if (currentStatus != null && currentStatus.pos != null)
-//                tableModel.fireTableRowsUpdated(currentStatus.pos, currentStatus.pos);
-//            if (status.pos != null)
-//                tableModel.fireTableRowsUpdated(status.pos, status.pos);
-//
-//            boolean scrollToCurrent = false;
-//            if (currentStatus == null)
-//                scrollToCurrent = true;
-//            currentStatus = status;
-//            if (scrollToCurrent)
-//                scrollToCurrent();
-//        }
-//        /*
-//         * Update song info if necessary
-//         */
-//        if (currentStatus.pos == null)
-//            return;
-//
-//        boolean update = false;
-//        MPDPlaylistResponse.TrackInfo track = playlist[currentStatus.pos];
-//        MPDStatusResponse.CurrentSong currentSong = currentStatus.currentSong;
-//
-//        if (track.title == null && currentSong.title != null) {
-//            track.title = currentSong.title;
-//            update = true;
-//        }
-//        if (track.album == null && currentSong.album != null) {
-//            track.album = currentSong.album;
-//            update = true;
-//        }
-//        if (track.artist == null && currentSong.artist != null) {
-//            track.artist = currentSong.artist;
-//            update = true;
-//        }
-//        if (track.date == null && currentSong.date != null) {
-//            track.date = currentSong.date;
-//            update = true;
-//        }
-//        if (track.track[0] == null && currentSong.track[0] != null) {
-//            track.track[0] = currentSong.track[0];
-//            update = true;
-//        }
-//
-//        if (update)
-//        {
-//            System.out.println("UPDATE");
-//            tableModel.fireTableRowsUpdated(track.pos, track.pos);
-//        }
-//    }

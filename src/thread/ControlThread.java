@@ -111,8 +111,6 @@ public class ControlThread implements Runnable {
                 MPDStatusResponse status;
                 status = mpdClient.getStatus();
 
-                ms.view.drawStatus(status);
-
                 boolean loadCover = false;
                 /* Status changed - try to load cover anyway */
                 if (prevStatus == null) {
@@ -145,6 +143,16 @@ public class ControlThread implements Runnable {
                                 status.currentSong.album)
                             );
                 }
+
+                /* reload browser/playlist on db update finish */
+                if (prevStatus != null && prevStatus.updating_db != null && status.updating_db == null) {
+                    if (mode == Mode.BROWSER)
+                        ms.view.loadBrowser(currentPath, mpdClient.getDBFiles(currentPath.toString()));
+                    else
+                        ms.view.loadPlaylist(mpdClient.getPlaylist());
+                }
+                ms.view.drawStatus(status);
+
                 prevStatus = status;
                 break;
             case TOGGLEMODE:
@@ -200,7 +208,8 @@ public class ControlThread implements Runnable {
                 break;
             case PLAYTRACK:
                 mpdClient.playTrack((Integer)message.object);
-                ms.view.drawStatus(mpdClient.getStatus());
+                prevStatus = mpdClient.getStatus();
+                ms.view.drawStatus(prevStatus);
                 break;
             case LOADCOVER:
                 ms.view.loadCover((String)message.object);
@@ -214,15 +223,26 @@ public class ControlThread implements Runnable {
                 break;
             case TOGGLEREPEAT:
                 mpdClient.repeatToggle();
-                ms.view.drawStatus(mpdClient.getStatus());
+                prevStatus = mpdClient.getStatus();
+                ms.view.drawStatus(prevStatus);
                 break;
             case TOGGLESINGLE:
                 mpdClient.singleToggle();
-                ms.view.drawStatus(mpdClient.getStatus());
+                prevStatus = mpdClient.getStatus();
+                ms.view.drawStatus(prevStatus);
                 break;
             case TOGGLERANDOM:
                 mpdClient.randomToggle();
-                ms.view.drawStatus(mpdClient.getStatus());
+                prevStatus = mpdClient.getStatus();
+                ms.view.drawStatus(prevStatus);
+                break;
+            case SETVOLUME:
+                mpdClient.setVolume((Integer)message.object);
+                break;
+            case UPDATEDB:
+                mpdClient.updateDB(currentPath.toString());
+                prevStatus = mpdClient.getStatus();
+                ms.view.drawStatus(prevStatus);
                 break;
         }
     }

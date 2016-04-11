@@ -6,9 +6,10 @@ package mshell;
 import javax.swing.*;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-/* */
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.Map;
+import java.io.File;
 /* */
 import mshell.view.View;
 import mshell.util.DPrint;
@@ -28,10 +29,21 @@ public class MusicShell {
     /**
      *
      */
-    private void start() {
-        threads = new ArrayList<>();
-
+    private void start(String... args) {
         config = new Config();
+
+        for (String arg: args) {
+
+        }
+
+        try {
+            mkDirs();
+        } catch (Exception e) {
+            System.out.println(e);
+            System.exit(1);
+        }
+
+        threads = new ArrayList<>();
         controlThread = new ControlThread(this);
         coverManager = new CoverManager(this);
 
@@ -54,7 +66,7 @@ public class MusicShell {
      *
      */
     public static void main(String... args) {
-        new MusicShell().start();
+        new MusicShell().start(args);
     }
     /**
      * Wait when other threads become ready
@@ -89,31 +101,44 @@ public class MusicShell {
             thread.interrupt();
         System.exit(0);
     }
-}
+    /**
+     * Create necessary directories used by program.
+     */
+    public void mkDirs() throws Exception {
+        Map<String, String> env = System.getenv();
 
-//        DPrint.hex(new byte[]{
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//        
-//        });
-//
+        String homeEnv = env.get("HOME");
+        if (homeEnv == null) {
+            throw new Exception("Failed to get HOME environment variable");
+        }
+
+        File homePath = new File(homeEnv);
+        File msPath = new File(homePath, ".mshell");
+
+        if (msPath.exists()) {
+            if (!msPath.isDirectory()) {
+                throw new Exception("Failed to create \"" + msPath.toString() + "\", " +
+                        "regular file already exists with such name");
+            }
+        } else {
+            if (!msPath.mkdir()) {
+                throw new Exception("Failed to create \"" + msPath.toString() + "\" directory");
+            }
+// = new String("/home/pine/.mshell/cover");
+        }
+
+        if (config.coverCacheDirectory == null) {
+            File coverPath = new File(msPath, "cover");
+            if (coverPath.exists()) {
+                if (!coverPath.isDirectory())
+                    throw new Exception("Failed to create \"" + coverPath.toString() + "\", " +
+                            "regular file already exists with such name");
+            } else {
+                if (!coverPath.mkdir())
+                    throw new Exception("Failed to create \"" + coverPath.toString() + "\" directory");
+            }
+            config.coverCacheDirectory = coverPath.toString();
+        }
+    }
+}
 

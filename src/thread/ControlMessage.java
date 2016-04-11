@@ -23,6 +23,8 @@ public class ControlMessage {
         TOGGLEREPEAT,
         TOGGLESINGLE,
         TOGGLERANDOM,
+        SETVOLUME,
+        UPDATEDB,
     }
     public Id id;
     public Object object;

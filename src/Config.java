@@ -20,6 +20,10 @@ public class Config {
     public static Font statusFont = new Font(Font.MONOSPACED, Font.BOLD, 16);
     public static Font mpdConnectStatusFont = new Font(Font.MONOSPACED, Font.PLAIN, 10);
     /* */
+    public static final boolean separateAlbumByColor = true;
+    /* */
+    public static int volumeStep = 5; /* in percents */
+    /* */
     public static final double sidePanelWidth = 0.2; /* 0.0 to 1.0, XXX weight, not actual proprtion */
     public static final int defaultPadding = 8;
     /* Playlist columns config */
@@ -29,7 +33,8 @@ public class Config {
     public static final int    mpdPort = 6600;
     /* For proper cover finding in local directories */
     public static final String musicDirectory = new String("/home/music");
-    public static final String coverCacheDirectory = new String("/home/pine/.mshell/cover");
+    public static String coverCacheDirectory; /* NOTE maked at startup if necessary, can be overriden here */
+//    public static final String coverCacheDirectory = new String("/home/mshell/.mshell/cover");
     public static final String coverCacheFormat = new String("png");
 //    public static final String coverCacheFormat = new String("jpg");
     /*
@@ -38,9 +43,9 @@ public class Config {
      */
     public static String[] coverPriority = {
         "CACHE",
+        "LASTFM",
         "cover.jpg",
         "cover.png",
-        "LASTFM",
         "*.jpg",
         "*.png"
     };

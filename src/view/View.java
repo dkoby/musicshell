@@ -41,6 +41,7 @@ public class View extends JFrame {
     private JPanel sidePanel;
     private JPanel listPanel;
     private VSpectrumView spectrumView;
+    private VProgressBarView progressBarView;
     private JLabel mpdConnectStatus;
     private boolean mpdError = false;
     private JScrollPane playlistScrollPane;
@@ -95,8 +96,13 @@ public class View extends JFrame {
                 spectrumView = new VSpectrumView();
                 spectrumView.setAlignmentX(Component.CENTER_ALIGNMENT);
                 spectrumView.setBorder(makeBorder(8));
-                spectrumView.setPreferredSize(new Dimension((int)winSize.getWidth(), (int)(winSize.getHeight() / 8)));
-                spectrumView.setMaximumSize(new Dimension((int)winSize.getWidth(), (int)(winSize.getHeight() / 8)));
+                spectrumView.setPreferredSize(new Dimension(0, (int)(winSize.getWidth() / 2)));
+                spectrumView.setMaximumSize(new Dimension((int)winSize.getWidth(), (int)(winSize.getWidth() / 2)));
+
+                progressBarView = new VProgressBarView();
+                progressBarView.setAlignmentX(Component.CENTER_ALIGNMENT);
+                progressBarView.setPreferredSize(new Dimension(0, 12));
+                progressBarView.setMaximumSize(new Dimension((int)winSize.getWidth(), 12));
 
                 mpdConnectStatus = new JLabel("No connection");
                 mpdConnectStatus.setBorder(makeBorder(2));
@@ -108,12 +114,15 @@ public class View extends JFrame {
                 coverLabel = new JLabel();
 
                 statusView = new StatusView(ms);
-//                statusView.getComponent().revalidate();
 
                 sidePanel.add(coverLabel);
                 sidePanel.add(pad);
-                sidePanel.add(statusView.getComponent());
                 sidePanel.add(Box.createVerticalGlue());
+                sidePanel.add(statusView.getComponent());
+                sidePanel.add(pad);
+                sidePanel.add(progressBarView);
+                sidePanel.add(Box.createVerticalGlue());
+                sidePanel.add(pad);
                 sidePanel.add(spectrumView);
                 sidePanel.add(mpdConnectStatus);
             }
@@ -255,8 +264,13 @@ public class View extends JFrame {
      */
     public void drawStatus(MPDStatusResponse status) {
         runLater(() -> {
-            playlistView.setCurrent(status);
             statusView.updateStatus(status);
+            playlistView.setCurrent(status);
+            if (status.time[0] != null && status.time[1] != 0) {
+                progressBarView.setValue(100 * status.time[0] / status.time[1]);
+            } else {
+                progressBarView.setValue(-1);
+            }
         });
     }
     /**
@@ -426,6 +440,7 @@ public class View extends JFrame {
         private void apply() {
             mainPanel.setBackground(bgColor);
             spectrumView.setColor(bgColor);
+            progressBarView.setColor(fgColor, bgColor);
             playlistScrollPane.getViewport().setBackground(bgColor);
             browserScrollPane.getViewport().setBackground(bgColor);
             playlistView.setColors(bgColor, fgColor, listSelBgColor,
@@ -548,6 +563,10 @@ public class View extends JFrame {
                     case KeyEvent.VK_U:
                         if ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0) {
                             new SimulateKey((JComponent)e.getSource(), 0, KeyEvent.VK_PAGE_UP);
+                        } else {
+                            if (isBrowserMode()) {
+                                ms.putControlMessage(new ControlMessage(ControlMessage.Id.UPDATEDB));
+                            }
                         }
                         return true;
                     case KeyEvent.VK_J:
@@ -598,6 +617,12 @@ public class View extends JFrame {
                         if (isPlaylistMode()) {
                             ms.putControlMessage(new ControlMessage(ControlMessage.Id.PLAYLISTCLEAR));
                         }
+                        return true;
+                    case KeyEvent.VK_Q:
+                        ms.putControlMessage(new ControlMessage(ControlMessage.Id.SETVOLUME, (Object)new Integer(1)));
+                        return true;
+                    case KeyEvent.VK_Z:
+                        ms.putControlMessage(new ControlMessage(ControlMessage.Id.SETVOLUME, (Object)new Integer(-1)));
                         return true;
                     default:
                         return false;

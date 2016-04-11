@@ -22,6 +22,7 @@ public class PlaylistView {
     private TableColumnModel columnModel;
     private Color currentTrackFgColor;
     private Color currentTrackSelFgColor;
+    private Color separateAlbumColor;
 
     private MPDPlaylistResponse.TrackInfo[] playlist;
     private MPDStatusResponse currentStatus;
@@ -126,6 +127,12 @@ public class PlaylistView {
 
         this.currentTrackFgColor = currentTrackFgColor;
         this.currentTrackSelFgColor = currentTrackSelFgColor;
+
+        float hsb[] = ColorUtil.colorToHSB(fgColor);
+        if (hsb[2] > 0.5)
+            this.separateAlbumColor = bgColor.brighter();
+        else
+            this.separateAlbumColor = bgColor.darker();
     }
     /**
      * Set current song
@@ -133,9 +140,7 @@ public class PlaylistView {
     public void setCurrent(MPDStatusResponse status) {
         if (playlist == null || playlist.length == 0)
             return;
-        /*
-         * Update current track if necessary
-         */
+        /* Update current track if necessary */
         if (currentStatus == null || status.pos != currentStatus.pos) {
             if (currentStatus != null && currentStatus.pos != null)
                 tableModel.fireTableRowsUpdated(currentStatus.pos, currentStatus.pos);
@@ -145,10 +150,34 @@ public class PlaylistView {
             boolean scrollToCurrent = false;
             if (currentStatus == null)
                 scrollToCurrent = true;
-            currentStatus = status;
             if (scrollToCurrent)
                 scrollToCurrent();
         }
+        /* */
+        if (ms.config.separateAlbumByColor) {
+            boolean update;
+            update = false;
+
+            if (currentStatus == null && status.currentSong.album != null)
+                update = true;
+            else if (currentStatus != null && currentStatus.currentSong.album != null && status.currentSong.album != null) {
+                if (!currentStatus.currentSong.album.equals(status.currentSong.album)) {
+                    update = true;
+                }
+            }
+
+            if (update) {
+                for (MPDPlaylistResponse.TrackInfo track: playlist) {
+                    if (track.album == null)
+                        continue;
+                    if (status.currentSong.album.equals(track.album)) {
+                        tableModel.fireTableRowsUpdated(track.pos, track.pos);
+                    }
+                }
+            }
+        }
+
+        currentStatus = status;
         /*
          * Update song info if necessary
          */
@@ -159,30 +188,36 @@ public class PlaylistView {
         MPDPlaylistResponse.TrackInfo track = playlist[currentStatus.pos];
         MPDStatusResponse.CurrentSong currentSong = currentStatus.currentSong;
 
-        if (track.title == null && currentSong.title != null) {
+//        System.out.format("CHECK %s %s%n", track.title, currentSong.title);
+        if ((track.title == null && currentSong.title != null) ||
+                (track.title != null && currentSong.title != null && !track.title.equals(currentSong.title))) {
             track.title = currentSong.title;
             update = true;
         }
-        if (track.album == null && currentSong.album != null) {
+        if ((track.album == null && currentSong.album != null) ||
+                (track.album != null && currentSong.album != null && !track.album.equals(currentSong.album))) {
             track.album = currentSong.album;
             update = true;
         }
-        if (track.artist == null && currentSong.artist != null) {
+        if ((track.artist == null && currentSong.artist != null) || 
+            (track.artist != null && currentSong.artist != null && !track.artist.equals(currentSong.artist))) {
             track.artist = currentSong.artist;
             update = true;
         }
-        if (track.date == null && currentSong.date != null) {
+        if ((track.date == null && currentSong.date != null) ||
+            (track.date != null && currentSong.date != null && !track.date.equals(currentSong.date))) {
             track.date = currentSong.date;
             update = true;
         }
-        if (track.track[0] == null && currentSong.track[0] != null) {
+        if ((track.track[0] == null && currentSong.track[0] != null) || 
+            (track.track[0] != null && currentSong.track[0] != null && !track.track[0].equals(currentSong.track[0]))) {
             track.track[0] = currentSong.track[0];
             update = true;
         }
 
         if (update)
         {
-            System.out.println("UPDATE");
+//            System.out.println("UPDATE");
             tableModel.fireTableRowsUpdated(track.pos, track.pos);
         }
     }
@@ -299,6 +334,23 @@ public class PlaylistView {
                         label.setForeground(table.getSelectionForeground());
                     } else {
                         label.setForeground(table.getForeground());
+                    }
+                }
+            }
+
+            if (ms.config.separateAlbumByColor) {
+                if (table.isRowSelected(row)) {
+                    label.setBackground(table.getSelectionBackground());
+                } else {
+                    if (currentStatus != null &&
+                            currentStatus.currentSong.album != null && track.album != null) {
+                        if (currentStatus.currentSong.album.equals(track.album)) {
+                            label.setBackground(separateAlbumColor);
+                        } else {
+                            label.setBackground(table.getBackground());
+                        }
+                    } else {
+                        label.setBackground(table.getBackground());
                     }
                 }
             }

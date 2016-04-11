@@ -16,6 +16,7 @@ public class MPDStatusResponse {
     public Integer id;
     public Integer pos;
     public State   state;
+    public Boolean updating_db;
     public Integer time[] = new Integer[2];
     public CurrentSong currentSong;
     /**

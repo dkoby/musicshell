@@ -24,6 +24,9 @@ import mshell.Config;
  *
  */
 public class MPDClient {
+    /* */
+    private Config config;
+    /* */
     private int    connectTimeout  = 500;
     private int    readTimeout     = 500;
     /* */
@@ -39,6 +42,7 @@ public class MPDClient {
      *
      */
     public MPDClient(Config config) throws MPDException {
+        this.config = config;
         socket = new Socket();
 
         try {
@@ -154,6 +158,8 @@ public class MPDClient {
                 continue;
             }
         }
+        /* XXX add pls */
+        supported.add("pls");
     }
     /**
      * Get version of MPD in string format
@@ -178,7 +184,7 @@ public class MPDClient {
 
         ArrayList<String> response = query("status");
         for (String line: response) {
-            DPrint.format(DPrint.Level.VERBOSE1, "line: %s%n", line);
+            DPrint.format(DPrint.Level.VERBOSE4, "line: %s%n", line);
             /*
              * volume: 59
              * repeat: 0
@@ -287,6 +293,12 @@ public class MPDClient {
                         status.state = MPDStatusResponse.State.PLAY;
                     continue;
                 }
+            }
+            if (status.updating_db == null) {
+                pattern = Pattern.compile("^updating_db:");
+                matcher = pattern.matcher(line);
+                if (matcher.find())
+                    status.updating_db = true;
             }
         }
         /*
@@ -479,33 +491,55 @@ public class MPDClient {
         MPDDBFilesResponse dbFiles = new MPDDBFilesResponse();
         Matcher matcher;
 
-        ArrayList<String> response = query("listfiles", "\"" + uri + "\"");
+//        System.out.println("URI: \"" + uri + "\"");
 
         if (!uri.equals("/"))
-//        if (uri.length() > 0)
             dbFiles.addEntry(MPDDBFilesResponse.EntryType.DIR, new String(".."));
+
+        uri = uri.substring(1); /* XXX remove leading slash */
+
+//        System.out.println("URI_: \"" + uri + "\"");
+        ArrayList<String> response = query("lsinfo", "\"" + uri + "\"");
+//        ArrayList<String> response = query("listfiles", "\"" + uri + "\"");
 
         for (String line: response)
         {
+            String fileName = null;
+
             DPrint.format(DPrint.Level.VERBOSE1, "line: %s%n", line);
 
-            matcher = Pattern.compile("^directory:\\s+(.+)").matcher(line);
-            if (matcher.find() && matcher.start(1) >= 0) {
-                dbFiles.addEntry(MPDDBFilesResponse.EntryType.DIR, matcher.group(1));
-                continue;
-            }
-            matcher = Pattern.compile("^file:\\s+(.+)").matcher(line);
-            if (matcher.find() && matcher.start(1) >= 0) {
-                String fileName = matcher.group(1);
-                for (String suffix: supported) {
-                    if (fileName.regionMatches(true, fileName.length() - suffix.length(),
-                                suffix, 0, suffix.length()))
-                    {
-                        dbFiles.addEntry(MPDDBFilesResponse.EntryType.FILE, new String(fileName));
-                        break;
-                    }
+            while (true) {
+                matcher = Pattern.compile("^directory:\\s+(.+)").matcher(line);
+                if (matcher.find() && matcher.start(1) >= 0) {
+                    fileName = matcher.group(1);
+                    break;
                 }
-                continue;
+                matcher = Pattern.compile("^file:\\s+(.+)").matcher(line);
+                if (!matcher.find(0))
+                    matcher = Pattern.compile("^playlist:\\s+(.+)").matcher(line);
+                if (matcher.find(0) && matcher.start(1) >= 0) {
+                    String match = matcher.group(1);
+//                    System.out.println("match: \"" + match + "\"");
+                    for (String suffix: supported) {
+                        if (match.endsWith(suffix))
+//                        if (match.regionMatches(true, match.length() - suffix.length(),
+//                                    suffix, 0, suffix.length()))
+                        {
+                            fileName = match;
+                            break;
+                        }
+                    }
+                    break;
+                }
+                break;
+            }
+
+            if (fileName != null) {
+                /* remove initial dir from file */
+                if (uri.length() > 0 && fileName.startsWith(uri)) {
+                    fileName = fileName.substring(uri.length() + 1 /* XXX */);
+                }
+                dbFiles.addEntry(MPDDBFilesResponse.EntryType.DIR, fileName);
             }
         }
 
@@ -531,7 +565,11 @@ public class MPDClient {
      *
      */
     public void addFiles(String uri) throws MPDException {
-        query("add", "\"" + uri.substring(1) + "\"");
+        if (uri.endsWith("pls")) {
+            query("load", "\"" + uri.substring(1) + "\"");
+        } else {
+            query("add", "\"" + uri.substring(1) + "\"");
+        }
     }
     /**
      *
@@ -619,8 +657,38 @@ public class MPDClient {
     /**
      *
      */
+    public void setVolume(Integer direction) throws MPDException {
+        MPDStatusResponse status = getStatus();
+
+        if (status.volume == null)
+            return;
+
+        int volume;
+        if (direction > 0)
+            volume = status.volume + config.volumeStep;
+        else
+            volume = status.volume - config.volumeStep;
+        if (volume > 100)
+            volume = 100;
+        else if (volume < 0)
+            volume = 0;
+
+        if (status.single)
+            query("setvol", new Integer(volume).toString());
+        else
+            query("setvol", new Integer(volume).toString());
+    }
+    /**
+     *
+     */
     public void playTrack(Integer trackPos) throws MPDException {
         query("play", trackPos.toString());
+    }
+    /**
+     *
+     */
+    public void updateDB(String path) throws MPDException {
+        query("update", "\"" + path.substring(1) + "\"");
     }
     /**
      * Close connection to MPD
