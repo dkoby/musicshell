@@ -31,7 +31,7 @@ public class ControlThread implements Runnable {
     private MPDClient mpdClient;
     private Mode mode = Mode.PLAYLIST;
     private static final String ROOTDIR = "/";
-    private File currentPath = new File(ROOTDIR);
+    private File currentPath;
     MPDStatusResponse prevStatus = null;
     /* */
     public ControlThread(MusicShell ms) {
@@ -45,6 +45,7 @@ public class ControlThread implements Runnable {
         if (!ms.initWait())
             return;
         while (true) {
+            currentPath = new File(ROOTDIR);
             /* Try to connect */
             try {
                 mpdClient = new MPDClient(ms.config);
@@ -153,7 +154,7 @@ public class ControlThread implements Runnable {
      * Process incoming message of control thread
      */
     private void processMessage(ControlMessage message) throws MPDClient.MPDException {
-        DPrint.format(DPrint.Level.VERBOSE4, "process message: %s%n", message.id.name());
+        DPrint.format(DPrint.Level.VERBOSE3, "process message: %s%n", message.id.name());
         switch (message.id) {
             case GETSTATUS:
                 processStatus(mpdClient.getStatus());

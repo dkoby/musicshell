@@ -65,7 +65,7 @@ public class PlaylistView {
             else
                 setCursor(0);
         }
-        scrollToCurrent();
+//        scrollToCurrent();
     }
     /**
      *
@@ -167,17 +167,37 @@ public class PlaylistView {
             }
 
             if (update) {
+                MPDStatusResponse prevStatus = currentStatus;
+
+                /* CellRenderer use currentStatus for album highlight. Set it to new */
+                currentStatus = status;
+
+//                tableModel.fireTableDataChanged();
+//                scrollToCurrent();
+
+                /* update previous album */
+                if (prevStatus != null && prevStatus.currentSong.album != null) {
+                    for (MPDPlaylistResponse.TrackInfo track: playlist) {
+                        if (track.album == null)
+                            continue;
+                        if (prevStatus.currentSong.album.equals(track.album)) {
+                            tableModel.fireTableRowsUpdated(track.pos, track.pos);
+                        }
+                    }
+                }
+
+                /* update new album */
                 for (MPDPlaylistResponse.TrackInfo track: playlist) {
                     if (track.album == null)
                         continue;
-                    if (status.currentSong.album.equals(track.album)) {
+                    if (currentStatus.currentSong.album.equals(track.album)) {
                         tableModel.fireTableRowsUpdated(track.pos, track.pos);
                     }
                 }
             }
         }
-
         currentStatus = status;
+
         /*
          * Update song info if necessary
          */

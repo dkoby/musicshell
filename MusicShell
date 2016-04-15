@@ -1,0 +1,12 @@
+#!/bin/sh
+
+LINKTO=$(readlink $0)
+
+if [ $? -ne 0 ]; then
+    DIRNAME=$(dirname $0)
+else
+    DIRNAME=$(dirname $LINKTO)
+fi
+
+cd ${DIRNAME} && java -Djava.library.path=. -jar ./MusicShell.jar $@
+

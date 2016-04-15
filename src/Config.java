@@ -10,14 +10,14 @@ import java.io.File;
 
 public class Config {
     public static boolean fullScreen     = false;
-    public static final int windowWidth  = 1440;
-    public static final int windowHeight = 900;
+    public static int windowWidth  = 1440;
+    public static int windowHeight = 900;
 //    public static int windowWidth  = 1920;
 //    public static int windowHeight = 1080;
     /* */
-    public static Color baseColor = new Color(0x44, 0x44, 0x66);
-    public static Font listFont = new Font(Font.MONOSPACED, Font.BOLD, 14);
-    public static Font statusFont = new Font(Font.MONOSPACED, Font.BOLD, 16);
+    public static Color baseColor           = new Color(0x44, 0x44, 0x66);
+    public static Font listFont             = new Font(Font.MONOSPACED, Font.BOLD, 14);
+    public static Font statusFont           = new Font(Font.MONOSPACED, Font.BOLD, 16);
     public static Font mpdConnectStatusFont = new Font(Font.MONOSPACED, Font.PLAIN, 10);
     /* */
     public static final boolean separateAlbumByColor = true;

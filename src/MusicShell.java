@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.Map;
 import java.io.File;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 /* */
 import mshell.view.View;
 import mshell.util.DPrint;
@@ -34,11 +36,31 @@ public class MusicShell {
 
         /* parse args */
         for (String arg: args) {
+            if (arg.equals("-h")) {
+                System.out.println("Command line options: ");
+                System.out.println("    -f                             Set full screen mode.");
+                System.out.println("    --geometry=<WIDTH>x<HEIGHT>    Window geometry. ");
+                System.exit(1);
+            }
             if (arg.equals("-f"))
             {
                 config.fullScreen = true;
                 continue;
             }
+            Pattern pattern = Pattern.compile("^--geometry=(\\d+)x(\\d+)");
+            Matcher matcher = pattern.matcher(arg);
+            if (matcher.find()) {
+                if (matcher.start(1) >= 0 && matcher.start(2) >= 0) {
+                    int width  = Integer.decode(matcher.group(1));
+                    int height = Integer.decode(matcher.group(2));
+
+                    config.windowWidth  = width;
+                    config.windowHeight = height;
+                    continue;
+                }
+            }
+            System.err.println("Unknown command line option \"" + arg + "\"");
+            System.exit(1);
         }
 
         try {

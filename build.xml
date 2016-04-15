@@ -18,8 +18,20 @@
     <!-- -->
     <property name="main-class"  value="mshell.MusicShell"/>
     <!-- -->
-    <target name="compile">
+    <target name="jni">
         <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${build.dir}/jni"/>
+        <exec dir="jni" executable="make" failonerror="true">
+            <arg value="all"/>
+            <env key="BUILD_DIR" value="${build.dir}"/>
+            <env key="CLASSES_DIR" value="${classes.dir}"/>
+        </exec>
+    </target>
+    <!-- -->
+    <target name="compile" depends="jni">
+        <!--
+        <mkdir dir="${classes.dir}"/>
+        -->
         <javac srcdir="${src.dir}" destdir="${classes.dir}" debug="true" debuglevel="lines,vars,source">
                 <compilerarg value="-Xlint:unchecked"/>
                 <compilerarg value="-Xlint:deprecation"/>
@@ -35,6 +47,9 @@
                 <attribute name="Main-Class" value="${main-class}"/>
             </manifest>
         </jar>
+    </target>
+    <target name="distr" depends="jar">
+        <!-- TODO -->
     </target>
     <!-- -->
     <target name="doc">
@@ -54,7 +69,9 @@
     <target name="clean-build" depends="clean, jar"/>
     <!-- -->
     <target name="run" depends="jar">
-        <java jar="${jar.dir}/${ant.project.name}.jar" fork="true"/>
+        <java jar="${jar.dir}/${ant.project.name}.jar" fork="true">
+            <jvmarg value="-Djava.library.path=${build.dir}/jni/fft"/>
+        </java>
     </target>
 </project>
 

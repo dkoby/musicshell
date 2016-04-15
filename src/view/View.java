@@ -28,6 +28,7 @@ import mshell.util.DPrint;
 import mshell.view.vcomponent.*;
 import mshell.mpd.*;
 import mshell.thread.ControlMessage;
+import mshell.jni.fft.KissFFT;
 
 /*
  *
@@ -96,13 +97,15 @@ public class View extends JFrame {
                 spectrumView = new VSpectrumView();
                 spectrumView.setAlignmentX(Component.CENTER_ALIGNMENT);
                 spectrumView.setBorder(makeBorder(8));
+                spectrumView.setMinimumSize(new Dimension(0, 64));
                 spectrumView.setPreferredSize(new Dimension(0, (int)(winSize.getWidth() / 2)));
                 spectrumView.setMaximumSize(new Dimension((int)winSize.getWidth(), (int)(winSize.getWidth() / 2)));
 
                 progressBarView = new VProgressBarView();
                 progressBarView.setAlignmentX(Component.CENTER_ALIGNMENT);
+                progressBarView.setMinimumSize(new Dimension(0, 8));
                 progressBarView.setPreferredSize(new Dimension(0, 12));
-                progressBarView.setMaximumSize(new Dimension((int)winSize.getWidth(), 12));
+                progressBarView.setMaximumSize(new Dimension((int)winSize.getWidth(), 8));
 
                 mpdConnectStatus = new JLabel("No connection");
                 mpdConnectStatus.setBorder(makeBorder(2));
@@ -359,10 +362,17 @@ public class View extends JFrame {
     /**
      *
      */
-    public synchronized void switchColors(Color newColor) {
+    public void switchColors(Color newColor) {
         colors.setAll(newColor);
         colors.apply();
     }
+    /**
+     *
+     */
+    public void drawSpectrum(KissFFT fft) {
+        spectrumView.drawSpectrum(fft);
+    }
+
     /**
      * Used for interface color manipulation
      */
@@ -615,7 +625,8 @@ public class View extends JFrame {
                         return true;
                     case KeyEvent.VK_C:
                         if (isPlaylistMode()) {
-                            ms.putControlMessage(new ControlMessage(ControlMessage.Id.PLAYLISTCLEAR));
+                            if (e.getModifiers() == 0)
+                                ms.putControlMessage(new ControlMessage(ControlMessage.Id.PLAYLISTCLEAR));
                         }
                         return true;
                     case KeyEvent.VK_Q:
@@ -674,7 +685,7 @@ public class View extends JFrame {
     /**
      * Wrapper for run runnable in event dispatch thread
      */
-    private void runLater(Runnable runnable) {
+    private static void runLater(Runnable runnable) {
         SwingUtilities.invokeLater(runnable);
     }
     /**
