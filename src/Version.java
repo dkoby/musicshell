@@ -6,11 +6,8 @@ package mshell;
 /*
  * TODO
  *    * Spectrum view.
- *    * Search in browser.
  *    * Search in playlist?
  *    * Volume display.
- *    * Window geometry in command line.
- *    * Command line help (-f option, etc.).
  *    * Pop-up help screen with keybindings.
  *    * MPD playlists support (list, save, load).
  *    * Seek playing track forward.

@@ -145,6 +145,40 @@ public class BrowserView {
         }
     }
     /**
+     *
+     */
+    public void scrollTo(int pos) {
+        int x       = 0;
+        int width   = table.getWidth();
+        int y       = pos * table.getRowHeight();
+        int height  = table.getRowHeight();
+
+        table.scrollRectToVisible(new Rectangle(x, y, width, height));
+    }
+    /**
+     * Search and scroll.
+     *
+     * @param text text to search for
+     *
+     * @return true if something found.
+     */
+    public boolean searchFor(String text) {
+//        System.out.println("search for \"" + text + "\"");
+
+        int idx = 0;
+        for (MPDDBFilesResponse.Entry entry: currentDir.entries) {
+            String name = entry.name;
+
+            if (name.regionMatches(true, 0, text, 0, text.length())) {
+                scrollTo(idx);
+                table.setRowSelectionInterval(0, idx);
+                return true;
+            }
+            idx++;
+        }
+        return false;
+    }
+    /**
      * Resize columns of table in proportions.
      */
     public void resize(int width) {

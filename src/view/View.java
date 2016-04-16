@@ -26,6 +26,7 @@ import mshell.MusicShell;
 import mshell.Version;
 import mshell.util.DPrint;
 import mshell.view.vcomponent.*;
+import mshell.view.FindBoxView;
 import mshell.mpd.*;
 import mshell.thread.ControlMessage;
 import mshell.jni.fft.KissFFT;
@@ -50,8 +51,9 @@ public class View extends JFrame {
     private JLabel coverLabel;
     private String prevCoverPath;
     private PlaylistView playlistView;
-    private BrowserView browserView;
+    public BrowserView browserView;
     private StatusView statusView;
+    private FindBoxView findBox;
     private boolean noCover = false;
     /**
      * @param ms instance of MusicShell (contain shared resources)
@@ -79,6 +81,12 @@ public class View extends JFrame {
         mainPanel = new JPanel();
         mainPanel.setLayout(mainGrid);
         mainPanel.setBorder(makeBorder(ms.config.defaultPadding));
+
+        /*
+         * Find Box
+         */
+        findBox = new FindBoxView(ms);
+        setGlassPane(findBox);
 
         /*
          * Side panel.
@@ -209,11 +217,7 @@ public class View extends JFrame {
 
         addWindowFocusListener(new WindowAdapter() {
             public void windowGainedFocus(WindowEvent e) {
-                if (isBrowserMode()) {
-                    browserView.getComponent().requestFocusInWindow();
-                } else {
-                    playlistView.getComponent().requestFocusInWindow();
-                }
+                forceFocus();
             }
         });
 
@@ -228,9 +232,25 @@ public class View extends JFrame {
             }
         });
 
+
+//        disableEvents(KeyEvent.MOUSE_EVENT_MASK);
         switchColors(ms.config.baseColor);
         setContentPane(mainPanel);
         setVisible(true);
+    }
+    /**
+     *
+     */
+    public void forceFocus() {
+        if (findBox.isVisible()) {
+            findBox.requestFocus();
+        } else {
+            if (isBrowserMode()) {
+                browserView.getComponent().requestFocusInWindow();
+            } else {
+                playlistView.getComponent().requestFocusInWindow();
+            }
+        }
     }
     /**
      *
@@ -457,6 +477,7 @@ public class View extends JFrame {
                     listSelFgColor, listCurFgColor, listCurSelFgColor);
             browserView.setColors(bgColor, fgColor, listSelBgColor, listSelFgColor, listCurFgColor);
             statusView.setColors(bgColor, fgColor);
+            findBox.setColors(bgColor, fgColor);
             if (mpdError)
                 mpdConnectStatus.setBackground(Color.RED);
             else
@@ -518,6 +539,9 @@ public class View extends JFrame {
         };
         @Override
         public boolean dispatchKeyEvent(KeyEvent e) {
+            if (findBox.isVisible())
+                return findBox.dispatchKeyEvent(e);
+
             if (e.getID() == KeyEvent.KEY_PRESSED) {
 //                    DPrint.format(DPrint.Level.VERBOSE4,
 //                        "%s \"%c\" 0x%02x%n", "Got key typed", e.getKeyChar(), (int)e.getKeyChar());
@@ -634,6 +658,11 @@ public class View extends JFrame {
                         return true;
                     case KeyEvent.VK_Z:
                         ms.putControlMessage(new ControlMessage(ControlMessage.Id.SETVOLUME, (Object)new Integer(-1)));
+                        return true;
+                    case KeyEvent.VK_SLASH:
+                        if (isBrowserMode()) {
+                            findBox.popUp();
+                        }
                         return true;
                     default:
                         return false;

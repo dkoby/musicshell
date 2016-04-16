@@ -51,7 +51,7 @@ public class VSpectrumView extends JComponent {
 
                 try {
                     Thread.sleep(CLEAR_TIMEOUT);
-                } catch (Exception e) {return;}
+                } catch (Exception e) {break;}
 
                 synchronized (VSpectrumView.this) {
                     if (clear)
