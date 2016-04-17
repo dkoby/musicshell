@@ -22,7 +22,7 @@ public class VVolumeView extends JComponent {
     /* */
     private final int BORDER_WIDTH = 2;
     private final int BAR_PAD   = 4;
-    private final int BAR_WIDTH = 8;
+    private final int BAR_WIDTH = 10;
     private BasicStroke borderStroke;
     /**
      *
@@ -76,7 +76,6 @@ public class VVolumeView extends JComponent {
         final int MIN_HEIGHT = height / 4;
         final int NBARS      = width / (BAR_WIDTH + BAR_PAD);
         final int HINCR      = (height - MIN_HEIGHT) / NBARS;
-        final int WSTROKE    = BORDER_WIDTH / 2;
 
         int nbars      = NBARS;
         int x          = (width - NBARS * (BAR_WIDTH + BAR_PAD)) / 2;
@@ -85,18 +84,19 @@ public class VVolumeView extends JComponent {
 
         while (nbars-- > 0) {
             /* draw bar outline */
-            g2d.setStroke(borderStroke);
+//            g2d.setStroke(borderStroke);
             g.setColor(borderColor);
-            g.drawRect(x + WSTROKE, height - bheight - WSTROKE,
-                    BAR_WIDTH - 2 * WSTROKE, bheight - 2 * WSTROKE);
+            g.fillRect(x, height - bheight,
+                    BAR_WIDTH, bheight);
+
 
             if ((100 * nbars / NBARS) >= (100 - percents))
                 barColor = fgColor;
             else
                 barColor = bgColor;
             g.setColor(barColor);
-            g.fillRect(x + WSTROKE * 2, height - bheight,
-                    BAR_WIDTH - 4 * WSTROKE, bheight - 4 * WSTROKE);
+            g.fillRect(x + BORDER_WIDTH, height - bheight + BORDER_WIDTH,
+                    BAR_WIDTH - BORDER_WIDTH * 2, bheight - BORDER_WIDTH * 2);
 
             x += BAR_WIDTH + BAR_PAD;
             bheight += HINCR;

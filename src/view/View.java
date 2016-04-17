@@ -103,7 +103,7 @@ public class View extends JFrame {
             {
                 Component pad = Box.createVerticalStrut(ms.config.defaultPadding);
 
-                spectrumView = new VSpectrumView();
+                spectrumView = new VSpectrumView().start();
                 spectrumView.setAlignmentX(Component.CENTER_ALIGNMENT);
                 spectrumView.setBorder(makeBorder(8));
                 spectrumView.setMinimumSize(new Dimension(0, 64));

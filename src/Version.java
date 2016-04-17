@@ -5,18 +5,16 @@ package mshell;
 
 /*
  * TODO
- *    * Spectrum view.
- *    * Search in playlist?
- *    * Volume display.
- *    * Pop-up help screen with keybindings.
- *    * MPD playlists support (list, save, load).
  *    * Seek playing track forward.
+ *    * Pop-up help screen with keybindings.
+ *    * Config dialog or XML config file (JAXB?).
+ *    * Search in playlist?
+ *    * MPD playlists support (list, save, load).
  *    * Copy back cover to local directory from CACHE.
  *    * Directly load cover from link provided from LASTFM without save to cache.
  *    * Covers in browser.
  *    * Update only necessary rows at status redraw (for less CPU usage).
  *    * Valid handling of update db in non-existiting directory.
- *    * Config dialog or XML config file (JAXB?).
  *    ? Message pop-up (add of tracks, DB udpate, etc.).
  *    * Load NOCOVER if cover not ready yet (downloading from lastFM).
  */

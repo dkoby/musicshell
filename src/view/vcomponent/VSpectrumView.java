@@ -39,8 +39,11 @@ public class VSpectrumView extends JComponent {
 
         setDoubleBuffered(false);
         setOpaque(true);
-
-        /* XXX from constructor ? */
+    }
+    /**
+     *
+     */
+    public VSpectrumView start() {
         clearThread = new Thread(() -> {
             final int CLEAR_TIMEOUT = 1000;
 
@@ -61,6 +64,8 @@ public class VSpectrumView extends JComponent {
         });
         clearThread.setDaemon(true);
         clearThread.start();
+
+        return this;
     }
     /**
      *
@@ -123,21 +128,26 @@ public class VSpectrumView extends JComponent {
     private class CalibrateMax {
         private final int MAXIMUM_VALUE      = 100; /* XXX */
         private final int CALIBRATE_INTERVAL = 2000;
+        private int max0;
         public int max;
         private int interval;
 
         public CalibrateMax() {
-            max = MAXIMUM_VALUE;
+            max0 = MAXIMUM_VALUE;
+            
         }
         public void setPoint(int point) {
-            if (point > max)
-                max = point;
+            if (point > max0)
+            {
+                max0 = (point + max0) / 2;
+            }
             if (++interval > CALIBRATE_INTERVAL) {
                 interval = 0;
-                max = max * 4 / 5;
-                if (max < MAXIMUM_VALUE)
-                    max = MAXIMUM_VALUE;
+                max0 = max0 * 99 / 100;
+                if (max0 < MAXIMUM_VALUE)
+                    max0 = MAXIMUM_VALUE;
             }
+            max = max0 * 3 / 5;
         }
     }
     /**

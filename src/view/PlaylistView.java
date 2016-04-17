@@ -130,9 +130,13 @@ public class PlaylistView {
 
         float hsb[] = ColorUtil.colorToHSB(fgColor);
         if (hsb[2] > 0.5)
-            this.separateAlbumColor = bgColor.brighter();
+            separateAlbumColor = bgColor.brighter();
         else
-            this.separateAlbumColor = bgColor.darker();
+            separateAlbumColor = bgColor.darker();
+        hsb = ColorUtil.colorToHSB(separateAlbumColor);
+        if (hsb[2] < 0.15f)
+            hsb[2] = 0.15f;
+        separateAlbumColor = ColorUtil.hsbToColor(hsb);
     }
     /**
      * Set current song
