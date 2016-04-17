@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.io.File;
 import java.io.InputStream;
 import java.io.FileInputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.imageio.ImageIO;
 /* */
 import mshell.MusicShell;
@@ -526,6 +527,23 @@ public class View extends JFrame {
                 ms.putControlMessage(message);
             }
         };
+        Runnable dirEnter = new Runnable() {
+            @Override
+            public void run() {
+                FileDescription file = browserView.getFileUnderCursor();
+                if (file.type.equals(FileDescription.Type.DIR))
+                {
+                    if (file.name.equals(".."))
+                    {
+                        prevDir.run();
+                    } else {
+                        browserView.saveCursor();
+                        new GoNextDirectory(file.name).run();
+                    }
+                }
+            }
+        };
+
         class GoNextDirectory implements Runnable {
             String nextDir;
             private GoNextDirectory(String nextDir) {
@@ -551,8 +569,17 @@ public class View extends JFrame {
         };
         @Override
         public boolean dispatchKeyEvent(KeyEvent e) {
-            if (findBox.isVisible())
-                return findBox.dispatchKeyEvent(e);
+            if (findBox.isVisible()) {
+                AtomicBoolean proceed = new AtomicBoolean(false);
+                boolean ret = findBox.dispatchKeyEvent(e, proceed);
+                if (!proceed.get())
+                    return ret;
+
+//                System.out.println("PROCEED");
+//                /* XXX */
+//                dirEnter.run();
+//                return true;
+            }
 
             if (e.getID() == KeyEvent.KEY_PRESSED) {
 //                    DPrint.format(DPrint.Level.VERBOSE4,
@@ -569,17 +596,7 @@ public class View extends JFrame {
                         return true;
                     case KeyEvent.VK_ENTER:
                         if (isBrowserMode()) {
-                            FileDescription file = browserView.getFileUnderCursor();
-                            if (file.type.equals(FileDescription.Type.DIR))
-                            {
-                                if (file.name.equals(".."))
-                                {
-                                    prevDir.run();
-                                } else {
-                                    browserView.saveCursor();
-                                    new GoNextDirectory(file.name).run();
-                                }
-                            }
+                            dirEnter.run();
                         } else if (isPlaylistMode()) {
                             playTrack.run();
                         }

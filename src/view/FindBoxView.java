@@ -6,6 +6,7 @@ package mshell.view;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 /* */
 import mshell.MusicShell;
 
@@ -93,7 +94,7 @@ public class FindBoxView extends JComponent {
     /**
      * @return true if event was processed
      */
-    public boolean dispatchKeyEvent(KeyEvent e) {
+    public boolean dispatchKeyEvent(KeyEvent e, AtomicBoolean proceed) {
         if (e.getID() == KeyEvent.KEY_TYPED) {
             switch (e.getKeyChar()) {
                 case '/':
@@ -115,7 +116,7 @@ public class FindBoxView extends JComponent {
                 case KeyEvent.VK_BACK_SPACE:
                     return false;
                 case KeyEvent.VK_ENTER:
-                    /* TODO perform enter on browserView */
+                    proceed.set(true);
                 case KeyEvent.VK_ESCAPE:
                     hideThread.interrupt();
                     dispose();
