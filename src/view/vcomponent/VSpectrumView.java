@@ -65,7 +65,7 @@ public class VSpectrumView extends JComponent {
     /**
      *
      */
-    public void setColor(Color color) {
+    public void setColors(Color color) {
         backingColor = color.brighter();
 
         float[] hsb = ColorUtil.colorToHSB(backingColor);

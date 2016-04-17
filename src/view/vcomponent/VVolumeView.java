@@ -13,7 +13,7 @@ import mshell.view.ColorUtil;
 /*
  *
  */
-public class VProgressBarView extends JComponent {
+public class VVolumeView extends JComponent {
     private Color borderColor;
     private Color fgColor;
     private Color bgColor;
@@ -21,11 +21,13 @@ public class VProgressBarView extends JComponent {
     int percents;
     /* */
     private final int BORDER_WIDTH = 2;
+    private final int BAR_PAD   = 4;
+    private final int BAR_WIDTH = 8;
     private BasicStroke borderStroke;
     /**
      *
      */
-    public VProgressBarView() {
+    public VVolumeView() {
         borderColor = Color.WHITE;
         fgColor     = Color.BLACK;
         bgColor     = Color.YELLOW;
@@ -68,33 +70,37 @@ public class VProgressBarView extends JComponent {
     @Override
     public void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D)g;
+        int width = getWidth();
+        int height = getHeight();
 
-        int width = getWidth() - BORDER_WIDTH * 2;
-        if (width < 0)
-            return;
+        final int MIN_HEIGHT = height / 4;
+        final int NBARS      = width / (BAR_WIDTH + BAR_PAD);
+        final int HINCR      = (height - MIN_HEIGHT) / NBARS;
+        final int WSTROKE    = BORDER_WIDTH / 2;
 
-        if (percents < 0) {
-            g.setColor(bgBaseColor);
-            g.fillRect(0, 0, getWidth(), getHeight());
-            return;
+        int nbars      = NBARS;
+        int x          = (width - NBARS * (BAR_WIDTH + BAR_PAD)) / 2;
+        int bheight    = MIN_HEIGHT;
+        Color barColor = fgColor;
+
+        while (nbars-- > 0) {
+            /* draw bar outline */
+            g2d.setStroke(borderStroke);
+            g.setColor(borderColor);
+            g.drawRect(x + WSTROKE, height - bheight - WSTROKE,
+                    BAR_WIDTH - 2 * WSTROKE, bheight - 2 * WSTROKE);
+
+            if ((100 * nbars / NBARS) >= (100 - percents))
+                barColor = fgColor;
+            else
+                barColor = bgColor;
+            g.setColor(barColor);
+            g.fillRect(x + WSTROKE * 2, height - bheight,
+                    BAR_WIDTH - 4 * WSTROKE, bheight - 4 * WSTROKE);
+
+            x += BAR_WIDTH + BAR_PAD;
+            bheight += HINCR;
         }
-
-        int part1 = width * percents / 100;
-        int part2 = width - part1;
-        int x = BORDER_WIDTH;
-
-        if (part1 > 0) {
-            g.setColor(fgColor);
-            g.fillRect(x, BORDER_WIDTH, part1, getHeight() - BORDER_WIDTH * 2);
-            x += part1;
-        }
-        if (part2 > 0) {
-            g.setColor(bgColor);
-            g.fillRect(x, BORDER_WIDTH, part2, getHeight() - BORDER_WIDTH * 2);
-        }
-        g2d.setStroke(borderStroke);
-        g.setColor(borderColor);
-        g.drawRect(0, 0, getWidth(), getHeight());
     }
 }
 

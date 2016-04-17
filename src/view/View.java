@@ -44,6 +44,7 @@ public class View extends JFrame {
     private JPanel listPanel;
     private VSpectrumView spectrumView;
     private VProgressBarView progressBarView;
+    private VVolumeView volumeView;
     private JLabel mpdConnectStatus;
     private boolean mpdError = false;
     private JScrollPane playlistScrollPane;
@@ -115,6 +116,12 @@ public class View extends JFrame {
                 progressBarView.setPreferredSize(new Dimension(0, 12));
                 progressBarView.setMaximumSize(new Dimension((int)winSize.getWidth(), 8));
 
+                volumeView = new VVolumeView();
+                volumeView.setAlignmentX(Component.CENTER_ALIGNMENT);
+                volumeView.setMinimumSize(new Dimension(0, 32));
+                volumeView.setPreferredSize(new Dimension(0, 48));
+                volumeView.setMaximumSize(new Dimension((int)winSize.getWidth(), 48));
+
                 mpdConnectStatus = new JLabel("No connection");
                 mpdConnectStatus.setBorder(makeBorder(2));
                 mpdConnectStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -132,7 +139,9 @@ public class View extends JFrame {
                 sidePanel.add(statusView.getComponent());
                 sidePanel.add(pad);
                 sidePanel.add(progressBarView);
+                sidePanel.add(pad);
                 sidePanel.add(Box.createVerticalGlue());
+                sidePanel.add(volumeView);
                 sidePanel.add(pad);
                 sidePanel.add(spectrumView);
                 sidePanel.add(mpdConnectStatus);
@@ -294,6 +303,8 @@ public class View extends JFrame {
             } else {
                 progressBarView.setValue(-1);
             }
+            if (status.volume != null)
+                volumeView.setValue(status.volume);
         });
     }
     /**
@@ -469,8 +480,9 @@ public class View extends JFrame {
          */
         private void apply() {
             mainPanel.setBackground(bgColor);
-            spectrumView.setColor(bgColor);
-            progressBarView.setColor(fgColor, bgColor);
+            spectrumView.setColors(bgColor);
+            progressBarView.setColors(fgColor, bgColor);
+            volumeView.setColors(fgColor, bgColor);
             playlistScrollPane.getViewport().setBackground(bgColor);
             browserScrollPane.getViewport().setBackground(bgColor);
             playlistView.setColors(bgColor, fgColor, listSelBgColor,
