@@ -28,11 +28,14 @@ public class VSpectrumView extends JComponent {
     /* */
     private Thread clearThread;
     private boolean clear = true;
+    /* */
+    private Repaint repaintRunnable;
     /**
      *
      */
     public VSpectrumView() {
         calibrateMax = new CalibrateMax();
+        repaintRunnable = new Repaint();
 
         backingColor = Config.baseColor.brighter();
         barColor     = Color.YELLOW;
@@ -183,16 +186,8 @@ public class VSpectrumView extends JComponent {
 
         final int DATA_OFFSET = 2;
 
-//        System.out.println(getClass().getSimpleName() + " points " + java.util.Arrays.toString(fft.getOutput()));
-
         int[] fftData = fft.getOutput();
         int depth = 2 * (fftData.length - DATA_OFFSET) / (width / (BAR_WIDTH + BAR_PAD));
-
-//        System.out.println(getClass().getSimpleName() +
-//                " length " + fftData.length +
-//                " depth " + depth +
-//                " width " + width
-//                );
 
         if (depth == 0) {
             /* TODO if not enough points - make duplicate points */
@@ -220,13 +215,8 @@ public class VSpectrumView extends JComponent {
             n = 0;
 
             int average = fifo.getAverage();
-
-
-//            System.out.println("AVERAGE: " + average);
             if (average > calibrateMax.max)
                 average = calibrateMax.max;
-
-//            System.out.println(getClass().getSimpleName() + " X " + x);
 
             int barheight = (int)(height * average / calibrateMax.max);
             g.fillRect(x, height - barheight - 1, BAR_WIDTH, barheight);
@@ -249,14 +239,17 @@ public class VSpectrumView extends JComponent {
      *
      */
     private void repaintSwing() {
-        SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeLater(repaintRunnable);
+    } 
+    /**
+     *
+     */
+    private class Repaint implements Runnable {
+        @Override
+        public void run() {
             revalidate();
             repaint();
-        });
-    } 
-    @Override
-    public boolean isOptimizedDrawingEnabled() {
-        return false;
+        }
     }
 }
 

@@ -104,12 +104,14 @@ public class View extends JFrame {
             {
                 Component pad = Box.createVerticalStrut(ms.config.defaultPadding);
 
-                spectrumView = new VSpectrumView().start();
-                spectrumView.setAlignmentX(Component.CENTER_ALIGNMENT);
-                spectrumView.setBorder(makeBorder(8));
-                spectrumView.setMinimumSize(new Dimension(0, 64));
-                spectrumView.setPreferredSize(new Dimension(0, (int)(winSize.getWidth() / 2)));
-                spectrumView.setMaximumSize(new Dimension((int)winSize.getWidth(), (int)(winSize.getWidth() / 2)));
+                if (ms.config.useSpectrumView) {
+                    spectrumView = new VSpectrumView().start();
+                    spectrumView.setAlignmentX(Component.CENTER_ALIGNMENT);
+                    spectrumView.setBorder(makeBorder(8));
+                    spectrumView.setMinimumSize(new Dimension(0, 64));
+                    spectrumView.setPreferredSize(new Dimension(0, (int)(winSize.getWidth() / 2)));
+                    spectrumView.setMaximumSize(new Dimension((int)winSize.getWidth(), (int)(winSize.getWidth() / 2)));
+                }
 
                 progressBarView = new VProgressBarView();
                 progressBarView.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -144,7 +146,8 @@ public class View extends JFrame {
                 sidePanel.add(Box.createVerticalGlue());
                 sidePanel.add(volumeView);
                 sidePanel.add(pad);
-                sidePanel.add(spectrumView);
+                if (ms.config.useSpectrumView)
+                    sidePanel.add(spectrumView);
                 sidePanel.add(mpdConnectStatus);
             }
 
@@ -218,7 +221,8 @@ public class View extends JFrame {
 
                 int spectrumWidth  = sideWidth;
                 int spectrumHeight = spectrumWidth / 2;
-                spectrumView.setPreferredSize(new Dimension(spectrumWidth, spectrumHeight));
+                if (ms.config.useSpectrumView)
+                    spectrumView.setPreferredSize(new Dimension(spectrumWidth, spectrumHeight));
             }
         });
 
@@ -370,7 +374,7 @@ public class View extends JFrame {
 
             if (prevCoverPath == null || !prevCoverPath.equals(coverPath)) {
                 noCover = false;
-                int width = spectrumView.getWidth();
+                int width = progressBarView.getWidth();
 
                 Image image = null;
                 try {
@@ -481,7 +485,8 @@ public class View extends JFrame {
          */
         private void apply() {
             mainPanel.setBackground(bgColor);
-            spectrumView.setColors(bgColor);
+            if (ms.config.useSpectrumView)
+                spectrumView.setColors(bgColor);
             progressBarView.setColors(fgColor, bgColor);
             volumeView.setColors(fgColor, bgColor);
             playlistScrollPane.getViewport().setBackground(bgColor);

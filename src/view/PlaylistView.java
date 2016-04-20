@@ -136,6 +136,8 @@ public class PlaylistView {
         hsb = ColorUtil.colorToHSB(separateAlbumColor);
         if (hsb[2] < 0.15f)
             hsb[2] = 0.15f;
+        if (hsb[2] > 0.6f)
+            hsb[2] = 0.6f;
         separateAlbumColor = ColorUtil.hsbToColor(hsb);
     }
     /**

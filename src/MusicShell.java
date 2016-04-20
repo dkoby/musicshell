@@ -76,7 +76,8 @@ public class MusicShell {
 
         threads.add(new Thread((Runnable)controlThread));
         threads.add(new Thread((Runnable)coverManager));
-        threads.add(new Thread((Runnable)new SpectrumThread(this)));
+        if (config.useSpectrumView)
+            threads.add(new Thread((Runnable)new SpectrumThread(this)));
         startLatch = new CountDownLatch(threads.size() + 1);
         for (Thread thread: threads)
             thread.start();

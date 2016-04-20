@@ -5,8 +5,9 @@ package mshell;
 
 /*
  * TODO
+ *    * Some documentation (at least README)
  *    * Seek playing track forward.
- *    * Pop-up help screen with keybindings.
+ *    * Pop-up help screen with keybindings (called with F1).
  *    * Config dialog or XML config file (JAXB?).
  *    * Search in playlist?
  *    * MPD playlists support (list, save, load).
@@ -17,6 +18,7 @@ package mshell;
  *    * Valid handling of update db in non-existiting directory.
  *    ? Message pop-up (add of tracks, DB udpate, etc.).
  *    * Load NOCOVER if cover not ready yet (downloading from lastFM).
+ *    * Some licence info in source code.
  */
 
 /*

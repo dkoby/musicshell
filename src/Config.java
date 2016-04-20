@@ -20,6 +20,8 @@ public class Config {
     public static Font statusFont           = new Font(Font.MONOSPACED, Font.BOLD, 16);
     public static Font mpdConnectStatusFont = new Font(Font.MONOSPACED, Font.PLAIN, 10);
     /* */
+    public static final boolean useSpectrumView = false;
+    /* */
     public static final boolean separateAlbumByColor = true;
     /* */
     public static int volumeStep = 5; /* in percents */
