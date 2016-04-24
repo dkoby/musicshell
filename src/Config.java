@@ -25,6 +25,7 @@ public class Config {
     public static final boolean separateAlbumByColor = true;
     /* */
     public static int volumeStep = 5; /* in percents */
+    public static int seekSeconds = 10;
     /* */
     public static final double sidePanelWidth = 0.2; /* 0.0 to 1.0, XXX weight, not actual proprtion */
     public static final int defaultPadding = 8;

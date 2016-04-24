@@ -25,6 +25,7 @@ public class ControlMessage {
         TOGGLERANDOM,
         SETVOLUME,
         UPDATEDB,
+        SEEKSONG,
     }
     public Id id;
     public Object object;

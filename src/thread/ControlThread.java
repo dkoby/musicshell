@@ -261,6 +261,10 @@ public class ControlThread implements Runnable {
                 mpdClient.updateDB(currentPath.toString());
                 processStatus(mpdClient.getStatus());
                 break;
+            case SEEKSONG:
+                mpdClient.seekSong((Integer)message.object);
+                processStatus(mpdClient.getStatus());
+                break;
         }
     }
     /**

@@ -7,6 +7,15 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.awt.color.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.io.File;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.time.Instant;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import javax.swing.event.*;
@@ -14,13 +23,6 @@ import javax.swing.border.*;
 import javax.swing.table.*;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.ImageIcon;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.io.File;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.util.concurrent.atomic.AtomicBoolean;
 import javax.imageio.ImageIO;
 /* */
 import mshell.MusicShell;
@@ -56,7 +58,8 @@ public class View extends JFrame {
     public BrowserView browserView;
     private StatusView statusView;
     private FindBoxView findBox;
-    private boolean noCover = false;
+    private Instant seekTime;
+    private boolean zscroll;
     /**
      * @param ms instance of MusicShell (contain shared resources)
      */
@@ -159,6 +162,14 @@ public class View extends JFrame {
             gridConstraint.anchor  = GridBagConstraints.NORTH;
             gridConstraint.fill    = GridBagConstraints.BOTH;
             mainPanel.add(sidePanel, gridConstraint);
+
+            /* XXX for proper cover resize during startup */
+            sidePanel.addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    progressBarView.revalidate();
+                }
+            });
         }
         /*
          * Browser(list) panel.
@@ -373,7 +384,6 @@ public class View extends JFrame {
                 coverPath = pathToLoad;
 
             if (prevCoverPath == null || !prevCoverPath.equals(coverPath)) {
-                noCover = false;
                 int width = progressBarView.getWidth();
 
                 Image image = null;
@@ -475,9 +485,11 @@ public class View extends JFrame {
                 listSelFgColor = ColorUtil.invertColor(listSelBgColor);
 
                 if (fgColor.getRed() > 200 && fgColor.getGreen() > 200 && fgColor.getBlue() < 200)
+                {
                     listCurFgColor = Color.WHITE;
-                else
+                } else {
                     listCurFgColor = Color.YELLOW;
+                }
             }
         }
         /**
@@ -690,12 +702,35 @@ public class View extends JFrame {
                     case KeyEvent.VK_Q:
                         ms.putControlMessage(new ControlMessage(ControlMessage.Id.SETVOLUME, (Object)new Integer(1)));
                         return true;
-                    case KeyEvent.VK_Z:
+                    case KeyEvent.VK_A:
                         ms.putControlMessage(new ControlMessage(ControlMessage.Id.SETVOLUME, (Object)new Integer(-1)));
                         return true;
                     case KeyEvent.VK_SLASH:
                         if (isBrowserMode()) {
                             findBox.popUp();
+                        }
+                        return true;
+                    case KeyEvent.VK_F:
+                        if (seekTime == null || Duration.between(seekTime, Instant.now()).toMillis() > 100) {
+                            seekTime = Instant.now();
+                            Integer adjust = ms.config.seekSeconds;
+                            if ((e.getModifiers() & KeyEvent.SHIFT_MASK) != 0)
+                                adjust = adjust * (-1);
+                            ms.putControlMessage(
+                                    new ControlMessage(ControlMessage.Id.SEEKSONG,
+                                        (Object)new Integer(adjust)));
+                        }
+                        return true;
+                    case KeyEvent.VK_Z:
+                        if (!zscroll) {
+                            zscroll = true;
+                            return true;
+                        }
+                        zscroll = false;
+                        if (isPlaylistMode()) {
+                            playlistView.scrollToCenter();
+                        } else {
+                            browserView.scrollToCenter();
                         }
                         return true;
                     default:

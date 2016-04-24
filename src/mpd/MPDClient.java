@@ -28,7 +28,7 @@ public class MPDClient {
     private Config config;
     /* */
     private int    connectTimeout  = 500;
-    private int    readTimeout     = 500;
+    private int    readTimeout     = 1000;
     /* */
     private Socket socket;
     private BufferedReader in;
@@ -677,6 +677,12 @@ public class MPDClient {
             query("setvol", new Integer(volume).toString());
         else
             query("setvol", new Integer(volume).toString());
+    }
+    /**
+     *
+     */
+    public void seekSong(Integer adjust) throws MPDException {
+        query("seekcur", String.format("%+d", adjust));
     }
     /**
      *

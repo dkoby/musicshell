@@ -87,6 +87,21 @@ public class BrowserView {
     /**
      *
      */
+    public void scrollToCenter() {
+        Rectangle visRect = table.getVisibleRect();
+
+        int visRows = (int)(visRect.getHeight() / table.getRowHeight());
+
+        int x       = 0;
+        int width   = table.getWidth();
+        int y       = (int)((table.getSelectedRow() - visRows / 2) * table.getRowHeight());
+        int height  = (visRows - 1) * table.getRowHeight();
+
+        table.scrollRectToVisible(new Rectangle(x, y, width, height));
+    }
+    /**
+     *
+     */
     public void setColors(
             Color bgColor, Color fgColor,
             Color selBgColor, Color selFgColor,

@@ -91,14 +91,30 @@ public class PlaylistView {
      */
     public void scrollToCurrent() {
         if (currentStatus != null && currentStatus.pos != null && currentStatus.pos < playlist.length) {
-            int x       = 0;
-            int width   = table.getWidth();
-            int y       = currentStatus.pos * table.getRowHeight();
-            int height  = table.getRowHeight();
-
-            table.scrollRectToVisible(new Rectangle(x, y, width, height));
+            scrollToPos(currentStatus.pos);
             setCursor(currentStatus.pos);
         }
+    }
+    /**
+     *
+     */
+    public void scrollToCenter() {
+        scrollToPos(table.getSelectedRow());
+    }
+    /**
+     *
+     */
+    private void scrollToPos(int pos) {
+        Rectangle visRect = table.getVisibleRect();
+
+        int visRows = (int)(visRect.getHeight() / table.getRowHeight());
+
+        int x       = 0;
+        int width   = table.getWidth();
+        int y       = (int)((pos - visRows / 2) * table.getRowHeight());
+        int height  = (visRows - 1) * table.getRowHeight();
+
+        table.scrollRectToVisible(new Rectangle(x, y, width, height));
     }
     /**
      *
